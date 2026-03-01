@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/kcm/kcm_cloud_mouse">
+        <file alias="main.qml">src/qml/main.qml</file>
+    </qresource>
+</RCC>

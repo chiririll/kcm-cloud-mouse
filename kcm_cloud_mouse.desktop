@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Icon=input-mouse
+Exec=systemsettings kcm_cloud_mouse
+
+Name=Cloud Mouse
+Comment=Configure mouse devices for Cloud Desktop (Gamescope)
+Categories=Qt;KDE;HardwareSettings;
+
+X-KDE-ServiceTypes=KCModule
+X-KDE-ParentApp=kcontrol
+X-KDE-System-Settings-Parent-Category=input-devices
+X-KDE-Keywords=Mouse,Cloud,Gamescope,Acceleration,Scroll,Pointer
+X-KDE-OnlyShowIfInstalled=true

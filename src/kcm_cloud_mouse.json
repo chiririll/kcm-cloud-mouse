@@ -1,0 +1,14 @@
+{
+    "KPlugin": {
+        "Id": "kcm_cloud_mouse",
+        "Name": "Cloud Mouse",
+        "Description": "Configure mouse devices for Cloud Desktop (Gamescope)",
+        "Icon": "input-mouse",
+        "Category": "input-devices",
+        "FormFactors": [
+            "desktop"
+        ]
+    },
+    "X-KDE-System-Settings-Parent-Category": "input-devices",
+    "X-KDE-Keywords": "Mouse,Cloud,Gamescope,Acceleration,Scroll,Pointer"
+}
