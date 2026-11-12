@@ -10,6 +10,7 @@
 
 #include <KPluginFactory>
 #include <KQuickConfigModule>
+#include <QtQml/qqml.h>
 
 class KCMCloudMouse : public KQuickConfigModule
 {
