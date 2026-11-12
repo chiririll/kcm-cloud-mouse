@@ -140,14 +140,28 @@ sudo dnf install cmake gcc-c++ extra-cmake-modules \
 
 ---
 
-## Сборка и установка
+## Установка из релиза (Fedora 43)
 
 ```bash
-git clone https://github.com/wolfam0108/kcm-cloud-mouse.git
+sudo dnf install https://github.com/chiririll/kcm-cloud-mouse/releases/latest/download/kcm-cloud-mouse-fc43-x86_64.rpm
+```
+
+RPM собирается GitHub Actions ([.github/workflows/release.yml](.github/workflows/release.yml)): тег `vX.Y.Z` — сборка и релиз.
+
+## Сборка и установка из исходников
+
+```bash
+git clone https://github.com/chiririll/kcm-cloud-mouse.git
 cd kcm-cloud-mouse
 cmake -B build -DCMAKE_INSTALL_PREFIX=/usr
 cmake --build build -j$(nproc)
 sudo cmake --install build
+```
+
+Или RPM локально (в контейнере Fedora):
+
+```bash
+docker run --rm -v "$PWD:/src" -w /src fedora:43 packaging/build-rpm.sh 1.0.1   # → out/*.rpm
 ```
 
 После установки модуль доступен в **System Settings → Input Devices → Cloud Mouse**.

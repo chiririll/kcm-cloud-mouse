@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
-project(kcm_cloud_mouse VERSION 1.0.0 LANGUAGES CXX)
+# Version comes from the release tag (CI → packaging/build-rpm.sh), not from here
+project(kcm_cloud_mouse LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -1,0 +1,48 @@
+# Push a tag like v1.0.1 → builds the Fedora RPM and attaches it to a GitHub release.
+# The asset kcm-cloud-mouse-fcNN-x86_64.rpm has no version in its name, so
+# .../releases/latest/download/<name> always points at the newest release.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  FEDORA: "43"
+
+jobs:
+  rpm:
+    runs-on: ubuntu-24.04
+    container: fedora:43
+    steps:
+      - uses: actions/checkout@v4
+
+      # v1.0.1 → 1.0.1, v2.0.0-rc1 → 2.0.0~rc1 (RPM has no "-" in versions)
+      - name: Version
+        run: echo "VER=$(echo "${GITHUB_REF_NAME#v}" | tr - '~')" | tee -a "$GITHUB_ENV"
+
+      - name: Build RPM (Fedora ${{ env.FEDORA }})
+        run: packaging/build-rpm.sh "$VER"
+
+      - name: Package
+        run: |
+          mkdir dist && cd dist
+          mv "../out/kcm-cloud-mouse-$VER-1.fc$FEDORA.x86_64.rpm" kcm-cloud-mouse-fc$FEDORA-x86_64.rpm
+          sha256sum *.rpm > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          dnf install -y -q gh
+          cd dist
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" *.rpm SHA256SUMS --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" *.rpm SHA256SUMS --generate-notes
+          fi
