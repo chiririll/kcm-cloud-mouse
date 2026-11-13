@@ -34,16 +34,30 @@ jobs:
         run: |
           mkdir dist && cd dist
           mv "../out/kcm-cloud-mouse-$VER-1.fc$FEDORA.x86_64.rpm" kcm-cloud-mouse-fc$FEDORA-x86_64.rpm
-          sha256sum *.rpm > SHA256SUMS-fc$FEDORA
-          cat SHA256SUMS-fc$FEDORA
 
-      - name: Publish release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm-fc${{ matrix.fedora }}
+          path: dist/*.rpm
+          if-no-files-found: error
+
+  # runs only if every build succeeded: one SHA256SUMS, one release, no partial releases
+  release:
+    needs: rpm
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: rpm-fc*
+          merge-multiple: true
+
+      - name: Create release
         run: |
-          dnf install -y -q gh
           cd dist
-          # matrix jobs run in parallel: whoever is first creates the release, the others upload
-          gh release create "$GITHUB_REF_NAME" *.rpm SHA256SUMS-fc$FEDORA --generate-notes 2>/dev/null \
-            || gh release upload "$GITHUB_REF_NAME" *.rpm SHA256SUMS-fc$FEDORA --clobber
+          sha256sum *.rpm > SHA256SUMS
+          cat SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" *.rpm SHA256SUMS --generate-notes
