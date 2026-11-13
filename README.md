@@ -132,7 +132,7 @@ KWin в Cloud Desktop — **вложенный** композитор, он не
 ## Зависимости для сборки
 
 ```bash
-# Fedora 43+
+# Fedora 43, 44, 45
 sudo dnf install cmake gcc-c++ extra-cmake-modules \
     qt6-qtbase-devel qt6-qtdeclarative-devel \
     kf6-kcmutils-devel kf6-ki18n-devel kf6-kcoreaddons-devel
@@ -140,13 +140,13 @@ sudo dnf install cmake gcc-c++ extra-cmake-modules \
 
 ---
 
-## Установка из релиза (Fedora 43)
+## Установка из релиза (Fedora 43, 44, 45)
 
 ```bash
-sudo dnf install https://github.com/chiririll/kcm-cloud-mouse/releases/latest/download/kcm-cloud-mouse-fc43-x86_64.rpm
+sudo dnf install https://github.com/chiririll/kcm-cloud-mouse/releases/latest/download/kcm-cloud-mouse-fc$(rpm -E %fedora)-x86_64.rpm
 ```
 
-RPM собирается GitHub Actions ([.github/workflows/release.yml](.github/workflows/release.yml)): тег `vX.Y.Z` — сборка и релиз.
+RPM для каждой версии Fedora собирается отдельно GitHub Actions ([.github/workflows/release.yml](.github/workflows/release.yml)): тег `vX.Y.Z` — сборка и релиз.
 
 ## Сборка и установка из исходников
 

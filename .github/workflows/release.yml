@@ -1,5 +1,5 @@
 # Push a tag like v1.0.1 → builds the Fedora RPM and attaches it to a GitHub release.
-# The asset kcm-cloud-mouse-fcNN-x86_64.rpm has no version in its name, so
+# One matrix job per Fedora release. The asset kcm-cloud-mouse-fcNN-x86_64.rpm has no version in its name, so
 # .../releases/latest/download/<name> always points at the newest release.
 name: release
 
@@ -10,13 +10,16 @@ on:
 permissions:
   contents: write
 
-env:
-  FEDORA: "43"
-
 jobs:
   rpm:
     runs-on: ubuntu-24.04
-    container: fedora:43
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora: ["43", "44", "45"]   # keep in sync with SUPPORTED_FEDORA in cloud-desktop-host/pve/install.sh
+    container: fedora:${{ matrix.fedora }}
+    env:
+      FEDORA: ${{ matrix.fedora }}
     steps:
       - uses: actions/checkout@v4
 
@@ -31,8 +34,8 @@ jobs:
         run: |
           mkdir dist && cd dist
           mv "../out/kcm-cloud-mouse-$VER-1.fc$FEDORA.x86_64.rpm" kcm-cloud-mouse-fc$FEDORA-x86_64.rpm
-          sha256sum *.rpm > SHA256SUMS
-          cat SHA256SUMS
+          sha256sum *.rpm > SHA256SUMS-fc$FEDORA
+          cat SHA256SUMS-fc$FEDORA
 
       - name: Publish release
         env:
@@ -41,8 +44,6 @@ jobs:
         run: |
           dnf install -y -q gh
           cd dist
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" *.rpm SHA256SUMS --clobber
-          else
-            gh release create "$GITHUB_REF_NAME" *.rpm SHA256SUMS --generate-notes
-          fi
+          # matrix jobs run in parallel: whoever is first creates the release, the others upload
+          gh release create "$GITHUB_REF_NAME" *.rpm SHA256SUMS-fc$FEDORA --generate-notes 2>/dev/null \
+            || gh release upload "$GITHUB_REF_NAME" *.rpm SHA256SUMS-fc$FEDORA --clobber
