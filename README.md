@@ -136,6 +136,11 @@ KWin в Cloud Desktop — **вложенный** композитор, он не
 sudo dnf install cmake gcc-c++ extra-cmake-modules \
     qt6-qtbase-devel qt6-qtdeclarative-devel \
     kf6-kcmutils-devel kf6-ki18n-devel kf6-kcoreaddons-devel
+
+# Ubuntu 26.04
+sudo apt install cmake g++ extra-cmake-modules \
+    qt6-base-dev qt6-declarative-dev \
+    libkf6kcmutils-dev libkf6i18n-dev libkf6coreaddons-dev
 ```
 
 ---
@@ -146,7 +151,14 @@ sudo dnf install cmake gcc-c++ extra-cmake-modules \
 sudo dnf install https://github.com/chiririll/kcm-cloud-mouse/releases/latest/download/kcm-cloud-mouse-fc$(rpm -E %fedora)-x86_64.rpm
 ```
 
-RPM для каждой версии Fedora собирается отдельно GitHub Actions ([.github/workflows/release.yml](.github/workflows/release.yml)): тег `vX.Y.Z` — сборка и релиз.
+## Установка из релиза (Ubuntu 26.04)
+
+```bash
+curl -fLO https://github.com/chiririll/kcm-cloud-mouse/releases/latest/download/kcm-cloud-mouse-ubuntu2604-x86_64.deb
+sudo apt install ./kcm-cloud-mouse-ubuntu2604-x86_64.deb
+```
+
+RPM для каждой версии Fedora и deb для Ubuntu собираются отдельно GitHub Actions ([.github/workflows/release.yml](.github/workflows/release.yml)): тег `vX.Y.Z` — сборка и релиз.
 
 ## Сборка и установка из исходников
 
@@ -158,10 +170,11 @@ cmake --build build -j$(nproc)
 sudo cmake --install build
 ```
 
-Или RPM локально (в контейнере Fedora):
+Или пакет локально (в контейнере Fedora / Ubuntu):
 
 ```bash
-docker run --rm -v "$PWD:/src" -w /src fedora:43 packaging/build-rpm.sh 1.0.1   # → out/*.rpm
+docker run --rm -v "$PWD:/src" -w /src fedora:43 packaging/build-rpm.sh 1.0.1      # → out/*.rpm
+docker run --rm -v "$PWD:/src" -w /src ubuntu:26.04 packaging/build-deb.sh 1.0.1  # → out/*.deb
 ```
 
 После установки модуль доступен в **System Settings → Input Devices → Cloud Mouse**.

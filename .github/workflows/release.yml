@@ -1,5 +1,6 @@
-# Push a tag like v1.0.1 → builds the Fedora RPM and attaches it to a GitHub release.
-# One matrix job per Fedora release. The asset kcm-cloud-mouse-fcNN-x86_64.rpm has no version in its name, so
+# Push a tag like v1.0.1 → builds the Fedora RPMs and the Ubuntu deb and attaches them to a GitHub release.
+# One matrix job per Fedora release, one for Ubuntu. The assets kcm-cloud-mouse-<tag>-x86_64.{rpm,deb}
+# (tag = fc43…, ubuntu2604; cloud-desktop-host pve/ct-install.sh asks for exactly these) have no version in their name, so
 # .../releases/latest/download/<name> always points at the newest release.
 name: release
 
@@ -41,9 +42,41 @@ jobs:
           path: dist/*.rpm
           if-no-files-found: error
 
+  deb:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: ["26.04"]   # keep in sync with SUPPORTED_TAGS in cloud-desktop-host/pve/install-parts/ct/10-ct-config.sh
+    container: ubuntu:${{ matrix.ubuntu }}
+    env:
+      UBUNTU: ${{ matrix.ubuntu }}
+    steps:
+      - run: apt-get update -q && apt-get install -y -q --no-install-recommends git ca-certificates
+
+      - uses: actions/checkout@v4
+
+      # v1.0.1 → 1.0.1, v2.0.0-rc1 → 2.0.0~rc1 (same rule as the RPM)
+      - name: Version
+        run: echo "VER=$(echo "${GITHUB_REF_NAME#v}" | tr - '~')" | tee -a "$GITHUB_ENV"
+
+      - name: Build deb (Ubuntu ${{ env.UBUNTU }})
+        run: packaging/build-deb.sh "$VER"
+
+      - name: Package
+        run: |
+          mkdir dist
+          mv "out/kcm-cloud-mouse_$VER-1_amd64.deb" "dist/kcm-cloud-mouse-ubuntu$(echo "$UBUNTU" | tr -d .)-x86_64.deb"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-ubuntu${{ matrix.ubuntu }}
+          path: dist/*.deb
+          if-no-files-found: error
+
   # runs only if every build succeeded: one SHA256SUMS, one release, no partial releases
   release:
-    needs: rpm
+    needs: [rpm, deb]
     runs-on: ubuntu-24.04
     env:
       GH_TOKEN: ${{ github.token }}
@@ -52,12 +85,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: rpm-fc*
           merge-multiple: true
 
       - name: Create release
         run: |
           cd dist
-          sha256sum *.rpm > SHA256SUMS
+          sha256sum *.rpm *.deb > SHA256SUMS
           cat SHA256SUMS
-          gh release create "$GITHUB_REF_NAME" *.rpm SHA256SUMS --generate-notes
+          gh release create "$GITHUB_REF_NAME" *.rpm *.deb SHA256SUMS --generate-notes
